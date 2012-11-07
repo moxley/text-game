@@ -36,11 +36,12 @@ describe Game do
 
   describe "RoomBuilder" do
     it "builds a room" do
-      b = subject.build_room(:room1) do |b|
-        b.location [0, 0]
-        b.text "This is a great room. There is a strange door to the left"
+      b = subject.room(:room1) do
+        location [0, 0]
+        text "This is a great room. There is a strange door to the left"
       end
-      p b
+      b.attributes[:location].should == [0, 0]
+      b.attributes[:text].should =~ /^This is a great room/
     end
   end
 end

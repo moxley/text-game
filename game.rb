@@ -1,85 +1,71 @@
 class Game
   attr_accessor :rooms
 
-  def initialize(game_def = define_rooms)
-    @rooms = game_def
+  def initialize
+    @rooms = {}
+  end
+
+  class Room
+    attr_accessor :key, :location, :entrance, :text
+
+    def initialize(attrs)
+      defaults = {:key => nil, :location => nil, :entrance => false, :text => nil}
+      defaults.each { |k, v| send("#{k}=", attrs.has_key?(k) ? attrs[k] : defaults[k]) }
+    end
+
+    def entrance?
+      entrance
+    end
   end
 
   class RoomBuilder
     attr_accessor :key, :attributes
 
-    def initialize(key)
-      key or raise "Room needs a key"
-      @key = key
+    def initialize
       @attributes = {
+        :key      => nil,
         :location => nil,
-        :is_entrance => false
+        :entrance => false
       }
     end
 
-    def self.build(key, &block)
-      b = RoomBuilder.new(key)
-      yield b
+    def self.build(proc)
+      b = RoomBuilder.new
+      b.instance_eval(&proc)
+      b.attributes[:key] or raise "Room needs a key name"
       b.attributes[:location] or raise "Room needs a location"
+      b.attributes[:text] or raise "Room needs a text description (text)"
       b
     end
 
-    def location(l)
-      @attributes[:location] = l
+    def key(k)
+      @attributes[:key] = k
+    end
+
+    def location(x, y)
+      @attributes[:location] = [x, y]
     end
 
     def text(t)
       @attributes[:text] = t
     end
 
-    def entrance?(e)
-      @attributes[:entrance?] = e
+    def entrance(e)
+      @attributes[:entrance] = e
     end
   end
 
-  def build_room(key, &block)
-    b = RoomBuilder.build(key) { |b| block.call(b) }
-    @rooms[b.key] = b.attributes
+  def room(&block)
+    b = RoomBuilder.build(block)
+    room = Room.new(b.attributes)
+    @rooms[room.key] = room
     b
-  end
-
-  def define_rooms
-    {
-      :entrance => {
-        :location => [0, 0],
-        :entrance? => true
-      },
-      :south_room => {
-        :location => [0, 1]
-      },
-      :room3 => {
-        :location => [1, 1]
-      }
-    }
-  end
-
-  def entrance
-    puts "This the entrance. You can go south"
-    puts "Which direction? (s): "
-    gets.strip
-  end
-
-  def south_room
-    puts "This is the South Room. You can go north or east"
-    puts "Which direction? (n, e): "
-    gets.strip
-  end
-
-  def room3
-    puts "This is Room 3. You can go west."
-    puts "Which direction? (w): "
-    gets.strip
   end
 
   def next_room(source_room, response)
     room_def = rooms[source_room]
-    next_x = room_def[:location][0]
-    next_y = room_def[:location][1]
+    next_x = room_def.location[0]
+    next_y = room_def.location[1]
     case response
     when 's'
       next_y += 1
@@ -90,40 +76,82 @@ class Game
     when 'w'
       next_x -= 1
     end
-    puts "next_x: #{next_x}, next_y: #{next_y}"
     room, room_def = rooms.detect do |room, room_def|
-      room_def[:location] == [next_x, next_y]
+      room_def.location == [next_x, next_y]
     end
     room
   end
 
   def find_first_entrance
-    room, room_def = rooms.detect do |room, room_def|
-      room_def[:entrance?]
+    key, room = rooms.detect do |key, room|
+      room.entrance?
+    end
+    key
+  end
+
+  def find_room(x, y)
+    loc = [x, y]
+    key, room = @rooms.detect do |key, room|
+      room.location == loc
     end
     room
   end
 
-  def iterate(room, res = 'q')
-    return unless room
-    res = send(room)
+  def find_adjoining_rooms(room)
+    locations = []
+    vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+    loc = room.location
+    x = loc[0]
+    y = loc[1]
+    found_rooms = vectors.map do |(dx, dy)|
+      find_room(x + dx, y + dy)
+    end.compact
+    found_rooms
+  end
+
+  def render(room_key)
+    room = @rooms[room_key]
+    puts room.text
+    adjoining_rooms = find_adjoining_rooms(room)
+    directions = adjoining_rooms.map do |r|
+      case r.location
+      when [room.location[0], room.location[1] - 1]
+        'n'
+      when [room.location[0] + 1, room.location[1]]
+        'e'
+      when [room.location[0], room.location[1] + 1]
+        's'
+      when [room.location[0] - 1, room.location[1]]
+        'w'
+      end
+    end
+    puts "You can move any of these directions: #{directions.join(', ')}"
+    print '> '
+    res = gets.strip
+    puts
+    res
+  end
+
+  def iterate(room_key, res = 'q')
+    return unless room_key
+    res = render(room_key)
     if res == 'q'
       puts "Thanks for playing."
       return nil
     end
 
-    room = next_room(room, res)
-    unless room
+    room_key = next_room(room_key, res)
+    unless room_key
       puts "Not a valid direction: #{res}"
       return nil
     end
 
-    if rooms[room][:entrance?]
+    if rooms[room_key].entrance?
       puts "You're back outside!"
       return nil
     end
 
-    room
+    room_key
   end
 
   def run
