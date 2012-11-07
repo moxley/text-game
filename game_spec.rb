@@ -33,12 +33,6 @@ describe Game do
     end
   end
 
-  describe "#find_adjoining_rooms" do
-    it "finds :south_room from :entrance" do
-      subject.find_adjoining_rooms(subject.rooms[:entrance]).should == [subject.rooms[:south_room]]
-    end
-  end
-
   describe "RoomBuilder" do
     it "builds a room" do
       room = subject.room do

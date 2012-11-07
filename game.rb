@@ -27,12 +27,6 @@ class Game
     key
   end
 
-  def find_adjoining_rooms(room)
-    room.connections.map do |conn|
-      @rooms[conn[:room]]
-    end
-  end
-
   def render(room_key)
     room = @rooms[room_key]
     puts room.text
