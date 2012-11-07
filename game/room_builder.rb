@@ -1,38 +1,34 @@
 class Game
   class RoomBuilder
-    attr_accessor :key, :attributes
+    attr_accessor :key, :room
 
     def initialize
-      @attributes = {
-        :key      => nil,
-        :location => nil,
-        :entrance => false
-      }
+      @room = Room.new
     end
 
     def self.build(proc)
       b = RoomBuilder.new
       b.instance_eval(&proc)
-      b.attributes[:key] or raise "Room needs a key name"
-      b.attributes[:location] or raise "Room needs a location"
-      b.attributes[:text] or raise "Room needs a text description (text)"
-      b
+      b.room.key or raise "Room needs a key name"
+      b.room.connections.empty? and raise "Room needs to connect somewhere"
+      b.room.text or raise "Room needs a text description (text)"
+      b.room
     end
 
     def key(k)
-      @attributes[:key] = k
+      @room.key = k
     end
 
-    def location(x, y)
-      @attributes[:location] = [x, y]
+    def connect(action, room)
+      @room.connections << {:action => action, :room => room}
     end
 
     def text(t)
-      @attributes[:text] = t
+      @room.text = t
     end
 
     def entrance(e)
-      @attributes[:entrance] = e
+      @room.entrance = e
     end
   end
 end

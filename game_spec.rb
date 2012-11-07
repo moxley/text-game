@@ -5,13 +5,13 @@ describe Game do
     Game.new.tap do |game|
       game.room do
         key :entrance
-        location 0, 0
+        connect 's', :south_room
         text "This is the entrance"
       end
 
       game.room do
         key :south_room
-        location 0, 1
+        connect 'n', :entrance
         text "This is the south room"
       end
     end
@@ -33,14 +33,20 @@ describe Game do
     end
   end
 
+  describe "#find_adjoining_rooms" do
+    it "finds :south_room from :entrance" do
+      subject.find_adjoining_rooms(subject.rooms[:entrance]).should == [subject.rooms[:south_room]]
+    end
+  end
+
   describe "RoomBuilder" do
     it "builds a room" do
       room = subject.room do
         key :room1
-        location 0, 0
-        text "This is a great room. There is a strange door to the left"
+        connect 's', :south_room
+        text "This is a great room. There is a strange door behind you."
       end
-      room.location.should == [0, 0]
+      room.connections.should == [{:action => 's', :room => :south_room}]
       room.text.should =~ /^This is a great room/
     end
   end

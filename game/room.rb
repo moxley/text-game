@@ -1,9 +1,9 @@
 class Game
   class Room
-    attr_accessor :key, :location, :entrance, :text
+    attr_accessor :key, :connections, :entrance, :text
 
-    def initialize(attrs)
-      defaults = {:key => nil, :location => nil, :entrance => false, :text => nil}
+    def initialize(attrs = {})
+      defaults = {:key => nil, :connections => [], :entrance => false, :text => nil}
       defaults.each { |k, v| send("#{k}=", attrs.has_key?(k) ? attrs[k] : defaults[k]) }
     end
 
