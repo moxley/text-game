@@ -16,15 +16,15 @@ game.room do
 end
 
 game.room do
-  key :east_room
+  key :badger_room
   location 2, 0
   text "There are lots of badgers here."
 end
 
 game.room do
-  key :south_room
+  key :bear_room
   location 0, 1
-  text "This is the south room. There is a polar bear here. He looks hungry."
+  text "This is the bear room. There is a polar bear here. He looks hungry."
 end
 
 game.run

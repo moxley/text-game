@@ -1,22 +1,21 @@
 require_relative 'game'
 
 describe Game do
-  let(:game_def) do
-    {
-      :entrance => {
-        :location => [0, 0],
-        :entrance? => true
-      },
-      :south_room => {
-        :location => [0, 1]
-      },
-      :room3 => {
-        :location => [1, 1]
-      }
-    }
-  end
+  subject do
+    Game.new.tap do |game|
+      game.room do
+        key :entrance
+        location 0, 0
+        text "This is the entrance"
+      end
 
-  subject { Game.new(game_def) }
+      game.room do
+        key :south_room
+        location 0, 1
+        text "This is the south room"
+      end
+    end
+  end
 
   describe "#next_room" do
     it "returns the correct room for a valid direction" do
@@ -36,12 +35,13 @@ describe Game do
 
   describe "RoomBuilder" do
     it "builds a room" do
-      b = subject.room(:room1) do
-        location [0, 0]
+      room = subject.room do
+        key :room1
+        location 0, 0
         text "This is a great room. There is a strange door to the left"
       end
-      b.attributes[:location].should == [0, 0]
-      b.attributes[:text].should =~ /^This is a great room/
+      room.location.should == [0, 0]
+      room.text.should =~ /^This is a great room/
     end
   end
 end
